@@ -1,18 +1,23 @@
 import { createServer } from "node:http";
 import { pathToFileURL } from "node:url";
-import { loadConfig } from "./config.ts";
-import { parseEnvelope, verifyWebhook } from "./webhook.ts";
+import { loadConfig, loadRuntimeConfig } from "./config.ts";
+import { parseEnvelope, readPath, verifyWebhook } from "./webhook.ts";
 import type { WebhookEnvelope } from "./webhook.ts";
 import type { IntakeStore } from "./record/intake.ts";
+import { createRuntime } from "./runtime.ts";
+import { AmbiguousClient } from "./ambiguous/client.ts";
+import { createAnalyzer } from "./engine/index.ts";
+import { completionFromEnv } from "./engine/model.ts";
 
 /** enqueue must persist promptly, before returning; never run the model in intake. */
 export function createApp(options: {
   secret?: string; enqueue?: (event: WebhookEnvelope) => Promise<void>; intake?: IntakeStore; now?: () => Date;
+  deliveryIdPath?: string; engine?: "real" | "stub";
 } = {}) {
   return createServer(async (request, response) => {
     response.setHeader("content-type", "application/json");
     if (request.method === "GET" && request.url === "/health") {
-      response.writeHead(200).end(JSON.stringify({ service: "reeve", status: "scaffold", engine: "stub", webhook: options.secret && options.enqueue ? "configured" : "not_configured" }));
+      response.writeHead(200).end(JSON.stringify({ service: "reeve", status: options.engine === "real" ? "integrated" : "scaffold", engine: options.engine ?? "stub", webhook: options.secret && options.enqueue ? "configured" : "not_configured" }));
       return;
     }
     if (request.method === "POST" && request.url === "/webhooks/ambiguous") {
@@ -41,6 +46,16 @@ export function createApp(options: {
         let envelope: WebhookEnvelope;
         try { envelope = parseEnvelope(rawBody); }
         catch { response.writeHead(400).end(JSON.stringify({ error: "Invalid event envelope" })); return; }
+        if (options.deliveryIdPath) {
+          const id = readPath(JSON.parse(rawBody.toString("utf8")), options.deliveryIdPath);
+          if (typeof id !== "string" || !id.trim() || id.length > 256) {
+            response.writeHead(400).end(JSON.stringify({ error: "Verified delivery identity is required" })); return;
+          }
+          envelope.delivery_id = id;
+        }
+        if (envelope.event !== "email.received") {
+          response.writeHead(200).end(JSON.stringify({ received: true, ignored: true })); return;
+        }
         if (options.intake && !envelope.delivery_id) {
           response.writeHead(400).end(JSON.stringify({ error: "Webhook delivery ID is required" }));
           return;
@@ -59,9 +74,18 @@ export function createApp(options: {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const config = loadConfig();
-  const server = createApp();
+  const runtimeConfig = loadRuntimeConfig();
+  const runtime = runtimeConfig ? createRuntime({ ...runtimeConfig, recordDir: config.recordDir,
+    client: new AmbiguousClient({ baseUrl: runtimeConfig.baseUrl, agentKey: runtimeConfig.agentKey }),
+    analyze: createAnalyzer({ approver: runtimeConfig.approver, complete: completionFromEnv() }),
+  }) : null;
+  const server = createApp(runtime && runtimeConfig ? { secret: runtimeConfig.secret, intake: runtime.intake,
+    enqueue: runtime.enqueue, deliveryIdPath: runtimeConfig.deliveryIdPath, engine: "real" } : {});
   server.listen(config.port, config.host, () => {
-    console.log(JSON.stringify({ service: "reeve", event: "listening", host: config.host, port: config.port, mode: "scaffold" }));
+    console.log(JSON.stringify({ service: "reeve", event: "listening", host: config.host, port: config.port, mode: runtime ? "integrated" : "scaffold" }));
+    runtime?.start();
   });
-  for (const signal of ["SIGINT", "SIGTERM"] as const) process.on(signal, () => server.close());
+  for (const signal of ["SIGINT", "SIGTERM"] as const) process.on(signal, () => {
+    server.close(() => { void runtime?.stop(); });
+  });
 }

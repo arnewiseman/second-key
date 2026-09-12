@@ -131,3 +131,11 @@ test('workspace adapter maps documents, approval tasks, and refusal mail', async
   assert.equal(calls[1]!.body && (calls[1]!.body as { assignee_id: string }).assignee_id, 'alex');
   assert.equal(calls[2]!.key, 'record-1:refusal');
 });
+
+test('workspace refuses missing external IDs and incorrect task assignment', async () => {
+  const bad = new AmbiguousWorkspace(clientWith(async () => Response.json({})));
+  await assert.rejects(bad.createDocument({ title: 'x', content: 'x' }), /document response/);
+  await assert.rejects(bad.sendRefusal({ to: { id: 'user', kind: 'user', email: 'user@example.test' }, reason: 'blocked', recordId: 'r' }), /mail response/);
+  const wrongTask = new AmbiguousWorkspace(clientWith(async () => Response.json({ task: { id: 't', status: 'todo', assignee_id: 'other' } })));
+  await assert.rejects(wrongTask.createApprovalTask({ title: 'Approve', docUrl: 'https://example.test/d', approver: { id: 'alex', kind: 'user', email: 'alex@example.test' } }), /not assigned/);
+});

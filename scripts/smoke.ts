@@ -25,4 +25,4 @@ const record = await router.receive({ text: await readFile("fixtures/inbound/01-
   from: { id: "priya-local", kind: "user", email: "priya.raman@example.test" } });
 if (record.state !== "awaiting_approval" || !record.doc_url || !record.task_id) throw new Error("Smoke contract failed");
 console.log(`Offline stub intake passed. Inspect ${root}/analysis.md, task.json and records/${record.id}.json`);
-console.log("This is scaffold verification; parsing, live approvals and closeout remain owner tasks.");
+console.log("This verifies offline stub intake only. npm run check covers the integrated loop with mocked services; live workspace acceptance remains separate.");

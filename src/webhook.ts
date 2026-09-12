@@ -48,6 +48,8 @@ export type NormalizeEmailOptions = {
   resolvePrincipal: (participant: EmailParticipantInput) => Principal | null;
   getEmail?: (id: string) => Promise<EmailLookup>;
   receivedAt?: string;
+  /** Explicitly configured data-relative path verified from a real delivery. */
+  emailIdPath?: string;
 };
 
 export function parseEnvelope(rawBody: Buffer): WebhookEnvelope {
@@ -67,17 +69,18 @@ export async function normalizeEmailEvent(
   const payload = asRecord(envelope.data);
   const deliveryId = nonEmpty(options.deliveryId) ?? nonEmpty(envelope.delivery_id) ?? nonEmpty(payload.delivery_id);
   if (!deliveryId) throw new Error("Webhook delivery ID is required");
-  const emailId = nonEmpty(payload.id) ?? nonEmpty(payload.email_id);
+  const emailId = options.emailIdPath ? nonEmpty(readPath(payload, options.emailIdPath)) : nonEmpty(payload.id) ?? nonEmpty(payload.email_id);
   const inline = readEmail(payload);
-  const fetched = !inline.text && emailId && options.getEmail ? await options.getEmail(emailId) : null;
+  const fetched = (options.emailIdPath || !inline.text) && emailId && options.getEmail ? await options.getEmail(emailId) : null;
   if (!emailId) throw new Error("Email ID is required");
+  if (options.emailIdPath && (!fetched || fetched.id !== emailId)) throw new Error("Verified email lookup is required");
   const email = fetched ? readEmail(asRecord(fetched)) : inline;
   if (!email.text) throw new Error("Email body is required");
   const participant = readParticipant(email.participant);
   if (!participant) throw new Error("Trusted email sender is required");
   const from = options.resolvePrincipal(participant);
   if (!from) throw new Error("Email sender is not a trusted principal");
-  const receivedAt = nonEmpty(email.receivedAt) ?? nonEmpty(options.receivedAt);
+  const receivedAt = nonEmpty(options.receivedAt) ?? nonEmpty(email.receivedAt);
   if (!receivedAt) throw new Error("Email received time is required");
   return {
     deliveryId,
@@ -109,12 +112,23 @@ function readEmail(value: Record<string, unknown>): {
   receivedAt: string | null;
 } {
   return {
-    text: nonEmpty(value.body_text) ?? nonEmpty(value.body) ?? nonEmpty(value.text),
+    text: [value.body_text, value.body, value.text].find(value => typeof value === "string" && value.trim()) as string | undefined ?? null,
     participant: value.from ?? value.sender,
     threadId: nonEmpty(value.thread_id),
     messageId: nonEmpty(value.message_id),
     receivedAt: nonEmpty(value.received_at),
   };
+}
+
+/** Configurable field selection avoids inventing the event-specific payload. */
+export function readPath(value: unknown, path: string): unknown {
+  if (!/^[a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)*$/.test(path)) throw new Error("Invalid webhook field path");
+  for (const key of path.split(".")) {
+    if (["__proto__", "constructor", "prototype"].includes(key) || !value || typeof value !== "object" ||
+        Array.isArray(value) || !Object.hasOwn(value, key)) return undefined;
+    value = (value as Record<string, unknown>)[key];
+  }
+  return value;
 }
 
 /** Converts a provider sender projection into resolver input. */

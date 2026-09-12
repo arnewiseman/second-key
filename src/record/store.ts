@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, open, unlink } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import type { DecisionRecord } from "../types.ts";
@@ -37,8 +37,14 @@ export class RecordStore {
     }
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
     const temporary = `${target}.${randomUUID()}.tmp`;
-    await writeFile(temporary, JSON.stringify(record, null, 2) + "\n", { mode: 0o600 });
-    await rename(temporary, target);
+    try {
+      const handle = await open(temporary, "wx", 0o600);
+      try { await handle.writeFile(JSON.stringify(record, null, 2) + "\n"); await handle.sync(); }
+      finally { await handle.close(); }
+      await rename(temporary, target);
+      const directory = await open(this.directory, "r");
+      try { await directory.sync(); } finally { await directory.close(); }
+    } finally { await unlink(temporary).catch(() => {}); }
   }
 
   async list(): Promise<DecisionRecord[]> {
