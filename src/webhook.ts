@@ -16,7 +16,7 @@ export function verifyWebhook(input: {
   return timingSafeEqual(expected, Buffer.from(hex, "hex"));
 }
 
-/** Only envelope is documented; Alex must normalize data from a real delivery. */
+/** Internal intake envelope; configured live adapters retain the complete provider object in data. */
 export type WebhookEnvelope = { event: string; data: unknown; delivery_id?: string };
 
 export type EmailParticipantInput = { id?: unknown; email?: unknown };
@@ -26,6 +26,7 @@ export type EmailLookup = {
   from?: unknown;
   sender?: unknown;
   body_text?: unknown;
+  body_markdown?: unknown;
   body?: unknown;
   text?: unknown;
   thread_id?: unknown;
@@ -48,16 +49,18 @@ export type NormalizeEmailOptions = {
   resolvePrincipal: (participant: EmailParticipantInput) => Principal | null;
   getEmail?: (id: string) => Promise<EmailLookup>;
   receivedAt?: string;
-  /** Explicitly configured data-relative path verified from a real delivery. */
+  /** Path relative to the persisted data (the complete provider envelope in live mode). */
   emailIdPath?: string;
 };
 
-export function parseEnvelope(rawBody: Buffer): WebhookEnvelope {
+export function parseEnvelope(rawBody: Buffer, eventTypePath?: string): WebhookEnvelope {
   const value: unknown = JSON.parse(rawBody.toString("utf8"));
-  if (!value || typeof value !== "object" || !("event" in value) ||
-      typeof value.event !== "string" || !("data" in value)) throw new Error("Invalid webhook envelope");
+  if (!value || typeof value !== "object" || Array.isArray(value) || !("data" in value)) throw new Error("Invalid webhook envelope");
+  const event = readPath(value, eventTypePath ?? "event");
+  if (typeof event !== "string" || !event.trim() || event.length > 256) throw new Error("Invalid webhook event type");
   const deliveryId = "delivery_id" in value && typeof value.delivery_id === "string" ? value.delivery_id : undefined;
-  return { event: value.event, data: value.data, ...(deliveryId ? { delivery_id: deliveryId } : {}) };
+  // Explicit mapping preserves root-level email identity and the original evidence.
+  return { event, data: eventTypePath ? value : value.data, ...(deliveryId ? { delivery_id: deliveryId } : {}) };
 }
 
 /** Normalizes one email event before the router or model receives it. */
@@ -112,7 +115,7 @@ function readEmail(value: Record<string, unknown>): {
   receivedAt: string | null;
 } {
   return {
-    text: [value.body_text, value.body, value.text].find(value => typeof value === "string" && value.trim()) as string | undefined ?? null,
+    text: [value.body_text, value.body_markdown, value.body, value.text].find(value => typeof value === "string" && value.trim()) as string | undefined ?? null,
     participant: value.from ?? value.sender,
     threadId: nonEmpty(value.thread_id),
     messageId: nonEmpty(value.message_id),

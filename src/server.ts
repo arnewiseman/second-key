@@ -12,7 +12,7 @@ import { completionFromEnv } from "./engine/model.ts";
 /** enqueue must persist promptly, before returning; never run the model in intake. */
 export function createApp(options: {
   secret?: string; enqueue?: (event: WebhookEnvelope) => Promise<void>; intake?: IntakeStore; now?: () => Date;
-  deliveryIdPath?: string; engine?: "real" | "stub";
+  deliveryIdPath?: string; eventTypePath?: string; engine?: "real" | "stub";
 } = {}) {
   return createServer(async (request, response) => {
     response.setHeader("content-type", "application/json");
@@ -44,7 +44,7 @@ export function createApp(options: {
           return;
         }
         let envelope: WebhookEnvelope;
-        try { envelope = parseEnvelope(rawBody); }
+        try { envelope = parseEnvelope(rawBody, options.eventTypePath); }
         catch { response.writeHead(400).end(JSON.stringify({ error: "Invalid event envelope" })); return; }
         if (options.deliveryIdPath) {
           const id = readPath(JSON.parse(rawBody.toString("utf8")), options.deliveryIdPath);
@@ -80,7 +80,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     analyze: createAnalyzer({ approver: runtimeConfig.approver, complete: completionFromEnv() }),
   }) : null;
   const server = createApp(runtime && runtimeConfig ? { secret: runtimeConfig.secret, intake: runtime.intake,
-    enqueue: runtime.enqueue, deliveryIdPath: runtimeConfig.deliveryIdPath, engine: "real" } : {});
+    enqueue: runtime.enqueue, deliveryIdPath: runtimeConfig.deliveryIdPath,
+    eventTypePath: runtimeConfig.eventTypePath, engine: "real" } : {});
   server.listen(config.port, config.host, () => {
     console.log(JSON.stringify({ service: "reeve", event: "listening", host: config.host, port: config.port, mode: runtime ? "integrated" : "scaffold" }));
     runtime?.start();

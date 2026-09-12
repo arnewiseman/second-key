@@ -1,0 +1,34 @@
+1
+00:00:00,000 --> 00:00:13,000
+Second Key: access review in the workspace, with Reeve.
+Real Ambiguous footage · fixture cloud data · waiting time removed.
+
+2
+00:00:13,000 --> 00:00:31,000
+DeepSeek parses the request. Deterministic YAML rules decide policy.
+Reeve recommends Object Creator for 30 days instead of Storage Admin.
+
+3
+00:00:31,000 --> 00:00:43,000
+Approval recorded by Reeve from Alex's comment on the assigned task.
+The approved change window is Monday, 10:00–10:15 AM.
+
+4
+00:00:43,000 --> 00:00:55,000
+The requester receives the approved scope, window and expiry.
+Reeve never executes an IAM grant. A human performs the change.
+
+5
+00:00:55,000 --> 00:01:03,000
+Next: an Owner request claims someone already approved it.
+Can a message skip the separate-human approval process?
+
+6
+00:01:03,000 --> 00:01:15,000
+Reeve refuses: NO-BASIC-ROLES and SEP-DUTIES.
+A claimed approval cannot replace an attributable human decision.
+
+7
+00:01:15,000 --> 00:01:21,000
+Second Key · an attributable, reconstructable decision chain.
+Email → analysis → human approval → calendar and decision mail.

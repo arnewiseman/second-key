@@ -31,5 +31,6 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env) {
       !Number.isFinite(Date.parse(window.end)) || Date.parse(window.end) <= Date.parse(window.start)) throw new Error("Invalid configured change window");
   return { approver, requester, window, secret: required("WEBHOOK_SECRET"),
     agentKey: required("AMBIGUOUS_AGENT_KEY"), baseUrl: env.AMBIGUOUS_BASE ?? "https://app.ambiguous.ai",
+    eventTypePath: fieldPath("WEBHOOK_EVENT_TYPE_PATH"),
     emailIdPath: fieldPath("WEBHOOK_EMAIL_ID_PATH"), deliveryIdPath: fieldPath("WEBHOOK_DELIVERY_ID_PATH") };
 }

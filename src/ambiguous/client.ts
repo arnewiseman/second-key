@@ -52,6 +52,7 @@ export type MailResult = {
   subject?: string;
   from?: MailParticipant | null;
   body_text?: string | null;
+  body_markdown?: string | null;
   body_html?: string | null;
   thread_id?: string | null;
   received_at?: string | null;

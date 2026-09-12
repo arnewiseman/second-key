@@ -47,7 +47,11 @@ export function findApprovalEvidence(input: {
 
 /** Accepts only an unquoted, positive approval statement. */
 export function isExplicitApproval(content: string): boolean {
-  const text = content.trim().toLowerCase().replace(/\s+/g, " ").replace(/[.!]$/, "");
+  const raw = content.trim();
+  // Live Ambiguous comments wrap plain text in one paragraph. Do not strip
+  // arbitrary HTML: quotes, attributes, nested markup and entities fail closed.
+  const paragraph = /^<p>([^<>&]*)<\/p>$/.exec(raw);
+  const text = (paragraph?.[1] ?? raw).trim().toLowerCase().replace(/\s+/g, " ").replace(/[.!]$/, "");
   return new Set([
     "approve", "approved", "i approve", "i approve the proposed scope",
     "approved with the proposed scope", "approved with proposed scope",

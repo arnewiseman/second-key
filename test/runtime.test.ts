@@ -54,9 +54,9 @@ test("signed webhook -> real engine -> workspace task -> attributable approval -
       requested_role: refused ? "roles/owner" : "roles/storage.admin", duration_days: null, needed_by: null,
       asserts_prior_approval: refused, justification: refused ? "" : "Data engineering's nightly parquet export is ready to move over." });
   } });
-  const runtime = createRuntime({ client, analyze, requester, approver, window, emailIdPath: "email_ref", recordDir: directory, now: () => now, log: () => {} });
+  const runtime = createRuntime({ client, analyze, requester, approver, window, emailIdPath: "data.email_ref", recordDir: directory, now: () => now, log: () => {} });
   const secret = "synthetic-test-placeholder";
-  const app = createApp({ secret, intake: runtime.intake, enqueue: runtime.enqueue, deliveryIdPath: "delivery_id", engine: "real", now: () => now });
+  const app = createApp({ secret, intake: runtime.intake, enqueue: runtime.enqueue, deliveryIdPath: "delivery_id", eventTypePath: "event", engine: "real", now: () => now });
   app.listen(0, "127.0.0.1");
   await once(app, "listening");
   t.after(async () => { await new Promise<void>(resolve => app.close(() => resolve())); await runtime.stop(); await rm(directory, { recursive: true, force: true }); });
@@ -113,7 +113,7 @@ test("live activation requires explicit verified field paths and separate config
   const env = { REEVE_ENABLED: "1", APPROVER_USER_ID: approver.id, APPROVER_EMAIL: approver.email,
     REQUESTER_USER_ID: requester.id, REQUESTER_EMAIL: requester.email, CALENDAR_ID: window.calendarId,
     CHANGE_START_AT: window.start, CHANGE_END_AT: window.end, WEBHOOK_SECRET: "test-placeholder", AMBIGUOUS_AGENT_KEY: "test-placeholder",
-    WEBHOOK_EMAIL_ID_PATH: "mail.id", WEBHOOK_DELIVERY_ID_PATH: "delivery.id" };
+    WEBHOOK_EVENT_TYPE_PATH: "type", WEBHOOK_EMAIL_ID_PATH: "mail.id", WEBHOOK_DELIVERY_ID_PATH: "delivery.id" };
   assert.equal(loadRuntimeConfig(env)?.emailIdPath, "mail.id");
   assert.throws(() => loadRuntimeConfig({ ...env, REQUESTER_USER_ID: approver.id }), /must differ/);
   assert.throws(() => loadRuntimeConfig({ ...env, WEBHOOK_EMAIL_ID_PATH: "" }), /required/);

@@ -1,0 +1,26 @@
+{
+  "id": "evt_00000000-0000-4000-8000-000000000001",
+  "type": "email.received",
+  "timestamp": "2026-09-12T20:00:00.000Z",
+  "resourceId": "00000000-0000-4000-8000-000000000002",
+  "resourceType": "email",
+  "resourceUrl": "https://workspace.example.test/mail/00000000-0000-4000-8000-000000000002",
+  "summary": "Demo email received",
+  "actor": {
+    "id": "system",
+    "name": "Demo mail service",
+    "email": "system@example.test"
+  },
+  "data": {
+    "senderEmail": "requester@example.test",
+    "recipients": ["reeve@example.test"],
+    "recipientIds": ["00000000-0000-4000-8000-000000000003"],
+    "subject": "Demo access request",
+    "bodyPreview": "Untrusted inline preview.",
+    "bodyFull": "Untrusted inline request body; use the authenticated mail lookup.",
+    "message_id_header": "<demo-message@example.test>",
+    "thread_id": "demo-thread@example.test"
+  },
+  "workspaceId": "00000000-0000-4000-8000-000000000004",
+  "recipientIds": ["00000000-0000-4000-8000-000000000003"]
+}

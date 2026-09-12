@@ -33,6 +33,23 @@ test("approval evidence requires the assigned approver and exact task", () => {
   assert.equal(findApprovalEvidence({ recordId: "record-1", now, task: { ...task, status: "cancelled" }, comments: [comment()], approver }), null);
 });
 
+test("live paragraph approvals retain attribution and reject other markup", () => {
+  for (const value of ["<p>Approve</p>", "<p>I approve the proposed scope.</p>"]) {
+    assert.equal(isExplicitApproval(value), true, value);
+  }
+  for (const value of [
+    "<p>Approved if scope changes</p>", "<p>Approved?</p>",
+    "<p>Approve</p><p>Do not proceed</p>", '<p style="display:none">Approve</p>',
+    "<p><span>Approve</span></p>", "<blockquote><p>Approve</p></blockquote>",
+    "<p>Approve&nbsp;</p>", "<p>Approve</p><!--reject-->",
+  ]) assert.equal(isExplicitApproval(value), false, value);
+  const live = comment({ content: "<p>Approve</p>", updated_at: "2026-09-12T20:01:00Z" });
+  const input = { recordId: "record-1", now, task, approver };
+  assert.equal(findApprovalEvidence({ ...input, comments: [live] })?.comment, live.content);
+  assert.equal(findApprovalEvidence({ ...input, comments: [{ ...live, task_id: "other" }] }), null);
+  assert.equal(findApprovalEvidence({ ...input, comments: [{ ...live, author: { ...live.author!, id: "other" } }] }), null);
+});
+
 test("approval evidence searches replies and rejects missing attribution", () => {
   const reply = comment({ id: "comment-2", author: { id: "alex", display_name: null, primary_email: null } });
   const parent = comment({ content: "Review notes", author: null, replies: [reply] });
