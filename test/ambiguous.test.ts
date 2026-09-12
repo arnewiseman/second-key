@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { AmbiguousApiError, AmbiguousClient, type RequestLog } from '../src/ambiguous/client.ts';
 import { renderDoc } from '../src/ambiguous/render.ts';
+import { AmbiguousWorkspace } from '../src/ambiguous/workspace.ts';
 
 function clientWith(fetch: typeof globalThis.fetch, extra = {}) {
   return new AmbiguousClient({ baseUrl: 'https://app.ambiguous.ai', agentKey: 'ak_private-test-key', fetch, log: () => {}, ...extra });
@@ -111,4 +112,22 @@ test('uses exact task/comment/calendar endpoints and documented envelopes', asyn
 test('refuses remote cleartext URLs and invalid retry configuration', () => {
   assert.throws(() => new AmbiguousClient({ baseUrl: 'http://example.com', agentKey: 'key' }), /HTTPS/);
   assert.throws(() => new AmbiguousClient({ baseUrl: 'https://app.ambiguous.ai', agentKey: 'key', maxRetries: -1 }), /configuration/);
+});
+
+test('workspace adapter maps documents, approval tasks, and refusal mail', async () => {
+  const calls: { url: string; body: unknown; key: string | null }[] = [];
+  const client = clientWith(async (url, init) => {
+    calls.push({ url: String(url), body: init?.body ? JSON.parse(String(init.body)) : null, key: new Headers(init?.headers).get('Idempotency-Key') });
+    if (String(url).endsWith('/api/documents')) return Response.json({ id: 'doc-1', title: 'Review', type: 'doc' }, { status: 201 });
+    if (String(url).endsWith('/api/tasks')) return Response.json({ task: { id: 'task-1', title: 'Review', status: 'todo', assignee_id: 'alex', completed_at: null } }, { status: 201 });
+    return Response.json({ id: 'mail-1', read: false }, { status: 201 });
+  });
+  const workspace = new AmbiguousWorkspace(client);
+  const doc = await workspace.createDocument({ title: 'Review', content: '# Review' });
+  const task = await workspace.createApprovalTask({ title: 'Approve request', docUrl: doc.url, approver: { id: 'alex', kind: 'user', email: 'alex@example.test' } });
+  await workspace.sendRefusal({ to: { id: 'arne', kind: 'user', email: 'arne@example.test' }, reason: 'NO-BASIC-ROLES', recordId: 'record-1' });
+  assert.equal(doc.url, 'https://app.ambiguous.ai/docs/doc-1');
+  assert.equal(task.id, 'task-1');
+  assert.equal(calls[1]!.body && (calls[1]!.body as { assignee_id: string }).assignee_id, 'alex');
+  assert.equal(calls[2]!.key, 'record-1:refusal');
 });

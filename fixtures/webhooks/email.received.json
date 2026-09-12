@@ -1,1 +1,1 @@
-{"event":"email.received","data":{"id":"synthetic-email-01","note":"Synthetic envelope for signature tests only; replace data with a redacted real delivery during the integration spike."}}
+{"event":"email.received","delivery_id":"synthetic-delivery-01","data":{"id":"synthetic-email-01","note":"Synthetic envelope for signature tests only; replace data with a redacted real delivery during the integration spike."}}

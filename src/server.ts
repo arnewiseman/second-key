@@ -3,10 +3,11 @@ import { pathToFileURL } from "node:url";
 import { loadConfig } from "./config.ts";
 import { parseEnvelope, verifyWebhook } from "./webhook.ts";
 import type { WebhookEnvelope } from "./webhook.ts";
+import type { IntakeStore } from "./record/intake.ts";
 
 /** enqueue must persist promptly, before returning; never run the model in intake. */
 export function createApp(options: {
-  secret?: string; enqueue?: (event: WebhookEnvelope) => Promise<void>; now?: () => Date;
+  secret?: string; enqueue?: (event: WebhookEnvelope) => Promise<void>; intake?: IntakeStore; now?: () => Date;
 } = {}) {
   return createServer(async (request, response) => {
     response.setHeader("content-type", "application/json");
@@ -40,7 +41,12 @@ export function createApp(options: {
         let envelope: WebhookEnvelope;
         try { envelope = parseEnvelope(rawBody); }
         catch { response.writeHead(400).end(JSON.stringify({ error: "Invalid event envelope" })); return; }
-        await options.enqueue(envelope);
+        if (options.intake && !envelope.delivery_id) {
+          response.writeHead(400).end(JSON.stringify({ error: "Webhook delivery ID is required" }));
+          return;
+        }
+        const accepted = options.intake ? await options.intake.accept(envelope, options.now?.() ?? new Date()) : null;
+        if (!accepted?.duplicate) await options.enqueue(envelope);
         response.writeHead(200).end(JSON.stringify({ received: true }));
       } catch {
         response.writeHead(503).end(JSON.stringify({ error: "Delivery was not accepted; retry later" }));
