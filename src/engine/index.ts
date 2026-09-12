@@ -1,4 +1,3 @@
-// Integration seam: this deliberately exports the hardcoded fixture-01 stub.
-// TODO(Arne): switch this export to the real engine once all three fixture scenarios pass.
-export { analyze } from "./stub.ts";
+// Real engine; offline loop development must explicitly import ./stub.ts.
+export { analyze, createAnalyzer } from "./analyze.ts";
 export { renderAnalysisDoc } from "./render.ts";

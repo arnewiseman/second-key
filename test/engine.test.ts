@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { analyze, renderAnalysisDoc } from "../src/engine/index.ts";
+import { analyze } from "../src/engine/stub.ts";
+import { renderAnalysisDoc } from "../src/engine/render.ts";
 import type { Principal } from "../src/types.ts";
 
 const sender: Principal = { id: "user-priya", kind: "user", email: "priya.raman@acme.example" };

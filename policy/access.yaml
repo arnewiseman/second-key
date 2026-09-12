@@ -1,6 +1,6 @@
-# Declarative policy scaffold. TODO(Arne): implement these named conditions in
-# deterministic TypeScript; never ask the model to evaluate them.
+# Conditions are evaluated by src/engine/policy.ts, never by the model.
 version: 1
+default_duration_days: 30
 rules:
   - id: PROD-EXPIRY
     severity: warn
@@ -28,3 +28,7 @@ rules:
     severity: warn
     condition: narrower_role_covers_stated_need
     message: A narrower role covers the stated need; review that recommendation before approval.
+  - id: REQUEST-VALIDATION
+    severity: block
+    condition: unsupported_or_incomplete_request
+    message: The request cannot be safely scoped from the available evidence.

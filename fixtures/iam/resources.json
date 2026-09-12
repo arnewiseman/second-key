@@ -1,0 +1,6 @@
+{
+  "projects/acme-data-prod": { "kind": "project", "environment": "production" },
+  "gs://prod-events-raw": { "kind": "bucket", "environment": "production" },
+  "projects/acme-data-staging": { "kind": "project", "environment": "staging" },
+  "gs://staging-events-raw": { "kind": "bucket", "environment": "staging" }
+}

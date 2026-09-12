@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { analyze } from "../src/engine/index.ts";
+import { analyze } from "../src/engine/stub.ts";
 import { createRouter } from "../src/router.ts";
 import { RecordStore } from "../src/record/store.ts";
 import type { Workspace } from "../src/ports.ts";
