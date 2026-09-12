@@ -1,0 +1,16 @@
+{
+  "roles/storage.admin": [
+    "storage.buckets.get", "storage.buckets.update", "storage.buckets.delete",
+    "storage.buckets.getIamPolicy", "storage.buckets.setIamPolicy",
+    "storage.objects.create", "storage.objects.get", "storage.objects.list",
+    "storage.objects.delete", "storage.objects.update"
+  ],
+  "roles/storage.objectCreator": ["storage.objects.create"],
+  "roles/storage.objectViewer": ["storage.objects.get", "storage.objects.list"],
+  "roles/owner": [
+    "resourcemanager.projects.get", "resourcemanager.projects.getIamPolicy",
+    "resourcemanager.projects.setIamPolicy", "storage.buckets.delete",
+    "storage.buckets.setIamPolicy", "storage.objects.create", "storage.objects.delete"
+  ],
+  "roles/logging.viewer": ["logging.logEntries.list", "logging.logs.list", "logging.sinks.get", "logging.sinks.list"]
+}

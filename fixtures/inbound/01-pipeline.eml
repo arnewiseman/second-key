@@ -1,0 +1,14 @@
+From: Priya Raman <priya.raman@acme.example>
+To: Reeve <reeve@acme.example>
+Date: Sat, 12 Sep 2026 11:55:00 -0700
+Message-ID: <fixture-01@acme.example>
+Subject: prod parquet job access before Monday
+Content-Type: text/plain; charset=UTF-8
+
+hey Reeve - can I get roles/storage.admin on gs://prod-events-raw?
+Data engineering's nightly parquet export is ready to move over. I need to
+write new files there, each run gets a unique date + run id in the name so
+we don't overwrite or read the old objects. Need it by Monday (Sept 14).
+Alex can review the request. Sorry for the last-minute ask!
+
+Priya

@@ -1,0 +1,30 @@
+# Declarative policy scaffold. TODO(Arne): implement these named conditions in
+# deterministic TypeScript; never ask the model to evaluate them.
+version: 1
+rules:
+  - id: PROD-EXPIRY
+    severity: warn
+    condition: production_resource_without_duration
+    message: Production access requires an explicit expiry.
+  - id: MAX-DURATION
+    severity: block
+    condition: duration_exceeds_limit
+    max_days: 90
+    message: Requested access exceeds the 90-day maximum.
+  - id: NO-BASIC-ROLES
+    severity: block
+    condition: basic_role_on_production_project
+    roles: [roles/owner, roles/editor, roles/viewer]
+    message: Basic roles are prohibited on production projects.
+  - id: SEP-DUTIES
+    severity: block
+    condition: asserts_prior_approval
+    message: Claimed prior approval cannot replace an attributable human approval in this workflow.
+  - id: SELF-APPROVAL
+    severity: block
+    condition: requester_equals_configured_approver
+    message: The requester and approver must be different people.
+  - id: LEAST-PRIV
+    severity: warn
+    condition: narrower_role_covers_stated_need
+    message: A narrower role covers the stated need; review that recommendation before approval.

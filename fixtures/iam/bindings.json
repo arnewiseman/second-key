@@ -1,0 +1,23 @@
+{
+  "projects/acme-data-prod": {
+    "roles/owner": [
+      { "id": "user-platform-owner", "kind": "user", "email": "platform-owner@acme.example" }
+    ]
+  },
+  "gs://prod-events-raw": {
+    "roles/storage.objectViewer": [
+      { "id": "sa-events-reader", "kind": "service_account", "email": "events-reader@acme-data-prod.iam.gserviceaccount.com" },
+      { "id": "sa-quality-check", "kind": "service_account", "email": "quality-check@acme-data-prod.iam.gserviceaccount.com" }
+    ]
+  },
+  "projects/acme-data-staging": {
+    "roles/logging.viewer": [
+      { "id": "user-staging-oncall", "kind": "user", "email": "staging-oncall@acme.example" }
+    ]
+  },
+  "gs://staging-events-raw": {
+    "roles/storage.objectCreator": [
+      { "id": "sa-staging-pipeline", "kind": "service_account", "email": "pipeline@acme-data-staging.iam.gserviceaccount.com" }
+    ]
+  }
+}

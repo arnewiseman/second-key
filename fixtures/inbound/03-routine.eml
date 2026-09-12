@@ -1,0 +1,15 @@
+From: Sam Okafor <sam.okafor@acme.example>
+To: Reeve <reeve@acme.example>
+Date: Sat, 12 Sep 2026 12:10:00 -0700
+Message-ID: <fixture-03@acme.example>
+Subject: staging logs for seven-day investigation
+Content-Type: text/plain; charset=UTF-8
+
+Hi Reeve,
+Please request roles/logging.viewer on projects/acme-data-staging for me
+for 7 days, starting today, September 12. I am investigating intermittent
+timeouts in the staging ingestion service and need to read its application
+logs. Alex should review this; I am not claiming any existing approval.
+
+Thanks,
+Sam Okafor, Platform
