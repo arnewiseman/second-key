@@ -39,7 +39,13 @@ export function createCloseout(options: {
       finally { await handle.close(); }
       await rename(temporary, path(progress.recordId));
       const directory = await open(options.directory, "r");
-      try { await directory.sync(); } finally { await directory.close(); }
+      try {
+        try { await directory.sync(); }
+        catch (error) {
+          const code = (error as NodeJS.ErrnoException).code;
+          if (code !== "EPERM" && code !== "ENOTSUP") throw error;
+        }
+      } finally { await directory.close(); }
     } finally { await unlink(temporary).catch(() => {}); }
   }
   async function update(record: DecisionRecord, patch: Partial<DecisionRecord>, what: string) {
