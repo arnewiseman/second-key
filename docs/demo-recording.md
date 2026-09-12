@@ -1,6 +1,6 @@
 # Second Key: real workflow video
 
-Status: delivered and ready to share. The real approval/closeout and refusal paths are complete and their results were viewed in Arne's UI. The demo is `data/demo/second-key-demo.mp4`: 81 seconds, 1920×1080, 60 fps, silent with captions, approximately 28 MB. Subtitles are at `data/demo/second-key-demo.srt`. The video link has been provided to the user. Parent and independent video review checked all seven scenes and the ending; no Terminal footage, black frames or credentials were observed. Final QA passed. Cuts and the edit recipe are kept in ignored `data/demo/`. The deliverable uses actual workflow footage.
+Status: the corrected polished demo is ready in `demo/second-key-demo.mp4`, with matching `demo/second-key-demo.srt`: 85 seconds, 1920×1080, silent with captions. It adds animated title and closing cards, chapter labels and fades. The initial 81-second edit contained Terminal footage at 55–59 seconds and a clipped draft-email shot that sparse preview checks missed. That entire source scene is removed in this revision. Review of all 170 samples at two frames per second found no Terminal footage; dark transition frames are intentional. Actual approval, calendar, received closing mail and refusal evidence are unchanged.
 
 Screen-recording permission was granted and Chrome is now visible for capture. An initial interrupted capture was lost, and the earlier `analysis-proposal.mov` showed Terminal; those attempts are excluded from the edit. The subsequent `analysis-visible.mov`, `policy-walkthrough.mov` and actual result footage are usable and support the rendered demo.
 
@@ -16,7 +16,7 @@ Record the Ambiguous workspace and the corresponding local decision record. Use 
 
 Remotion can assemble the actual clips into an MP4 with title cards, zooms, captions and narration. Its official agent skills support Codex, creation, rendering, captions and audio: https://www.remotion.dev/docs/ai/skills . Official workflow: https://www.remotion.dev/docs/ai/coding-agents . Skill installation and renderer installation have not been performed. Keep video tooling separate from the application's runtime dependencies. Use only local fixture/demo content in any narration service; no keys or unrelated screen content.
 
-Original planning target: approximately 110 seconds, landscape 1920×1080. The current edit is 81 seconds with captions and no narration audio. Preserve readable document text, disclose removed waiting time, retain the raw clips and local edit recipe, and export the captioned MP4 with its subtitle file. The shot list below is the original narration/coverage plan; final captions must follow the actual edit.
+Original planning target: approximately 110 seconds, landscape 1920×1080. The corrected polished edit is 85 seconds with captions and no narration audio. Preserve readable document text, disclose removed waiting time, retain the raw clips and local edit recipe, and export the captioned MP4 with its subtitle file. The shot list below is the original narration/coverage plan; final captions must follow the actual edit.
 
 ## Before recording
 
